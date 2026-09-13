@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Fish } from '../types';
+import { api } from '../services/api';
 
 interface FocusState {
   userId: string | null;
@@ -10,10 +11,10 @@ interface FocusState {
   setUser: (user: User) => void;
   setFish: (fish: Fish) => void;
   addExperience: (amount: number) => void;
-  loadUserProfile: (id: string) => Promise<void>;
+  loadUserProfile: (id?: string) => Promise<void>;
 }
 
-export const useFocusStore = create<FocusState>((set, get) => ({
+export const useFocusStore = create<FocusState>((set) => ({
   userId: null,
   user: null,
   fish: null,
@@ -49,9 +50,11 @@ export const useFocusStore = create<FocusState>((set, get) => ({
 
   loadUserProfile: async (id) => {
     try {
-      const { api } = require('../services/api');
       const user = await api.getUserProfile(id);
-      set({ user, fish: user.fish });
+      set({ 
+        user, 
+        fish: user.fish || null 
+      });
     } catch (e) {
       console.error("Failed to load profile", e);
     }

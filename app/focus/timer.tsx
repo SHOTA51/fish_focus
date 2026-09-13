@@ -1,19 +1,23 @@
-import React from "react";
-import { View, Text, Pressable, SafeAreaView, Alert, Image } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable, Alert, Image } from "react-native";
 import { router } from "expo-router";
 import { useTimer } from "../hooks/useTimer";
 import { useFocusStore } from "../store/useFocusStore";
 
 export default function TimerScreen() {
   const { fish } = useFocusStore();
-  
-  const { 
-    formatTime, 
-    isActive, 
-    toggleTimer, 
-    secondsLeft 
-  } = useTimer(10, () => {
-    router.replace("/focus/success");
+  const [selectedMinutes, setSelectedMinutes] = useState(10);
+  const presets = [5, 10, 15, 25];
+
+  const {
+    formatTime,
+    isActive,
+    toggleTimer,
+  } = useTimer(selectedMinutes, () => {
+    router.replace({
+      pathname: "/focus/success",
+      params: { duration: selectedMinutes }
+    });
   });
 
   const handleReset = () => {
@@ -28,11 +32,11 @@ export default function TimerScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-blue-600">
+    <View className="flex-1 bg-[#208AEF] pt-12">
       <View className="flex-1 px-6 py-4">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-12">
-          <Pressable 
+          <Pressable
             onPress={() => router.back()}
             className="h-12 w-12 items-center justify-center rounded-2xl bg-white/20 border border-white/30"
           >
@@ -42,6 +46,25 @@ export default function TimerScreen() {
           <View className="h-12 w-12" />
         </View>
 
+        {/* Duration Selection */}
+        <View className="flex-row justify-center gap-x-3 mb-12">
+          {presets.map((min) => (
+            <Pressable
+              key={min}
+              onPress={() => setSelectedMinutes(min)}
+              className={`px-4 py-2 rounded-full border ${
+                selectedMinutes === min
+                  ? "bg-white border-white text-blue-600"
+                  : "bg-transparent border-white/40 text-white"
+              }`}
+            >
+              <Text className={`font-bold ${selectedMinutes === min ? "text-blue-600" : "text-white"}`}>
+                {min}m
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         {/* Fish Tank Area */}
         <View className="flex-1 items-center justify-center">
           <View className="relative mb-12 h-72 w-72 items-center justify-center rounded-full bg-blue-500/30 border-4 border-white/20 shadow-2xl">
@@ -49,7 +72,7 @@ export default function TimerScreen() {
             <View className="absolute top-10 left-20 w-3 h-3 rounded-full bg-white/20" />
             <View className="absolute bottom-20 right-16 w-4 h-4 rounded-full bg-white/10" />
             <View className="absolute top-40 right-12 w-2 h-2 rounded-full bg-white/30" />
-            
+
             <Image source={require('../../assets/images/Group2.png')} className="w-18 h-18" resizeMode="contain" />
           </View>
 
@@ -58,8 +81,8 @@ export default function TimerScreen() {
             <Text className="text-8xl font-black text-white tracking-tighter mb-2">
               {formatTime()}
             </Text>
-            <Text className="text-blue-200 font-medium text-lg">
-              {isActive ? `${fish?.name} is swimming...` : 'Ready to start?'}
+            <Text className="text-blue-100 font-medium text-lg">
+              {isActive ? `${fish?.name || 'Your fish'} is swimming...` : 'Ready to start?'}
             </Text>
           </View>
 
@@ -90,6 +113,6 @@ export default function TimerScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
