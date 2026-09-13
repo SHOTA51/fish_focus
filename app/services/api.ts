@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../constants/config';
-import { User, Quest } from '../types';
+import { User, Quest, Statistics } from '../types';
 
 // Create an axios instance to handle JWT tokens automatically
 const client = axios.create({
@@ -46,4 +46,10 @@ export const api = {
     const { data } = await client.get('/quests');
     return data as Quest[];
   },
+
+  async getStatistics() {
+    const { data } = await client.get('/statistics');
+    return data as Statistics;
+  },
 };
+

@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import focusRoutes from './routes/focusRoutes';
 import questRoutes from './routes/questRoutes';
+import statisticsRoutes from './routes/statisticsRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/focus', focusRoutes);
 app.use('/api/quests', questRoutes);
+app.use('/api/statistics', statisticsRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Focus Fish Server is healthy' });
