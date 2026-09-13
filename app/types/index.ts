@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   totalFocusTime: number;
+  fish?: Fish; // Added fish to user as the server nests it
 }
 
 export interface Fish {

@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  email          String   @unique
+  password       String
+  totalFocusTime Int      @default(0)
+  createdAt      DateTime @default(now())
+  fish           Fish?
+  sessions       FocusSession[]
+}
+
+model Fish {
+  id         String @id @default(uuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id])
+  name       String
+  level      Int    @default(1)
+  experience Int    @default(0)
+  stage      String @default("egg") // egg, fry, juvenile, adult
+}
+
+model FocusSession {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  duration  Int
+  timestamp DateTime @default(now())
+  success   Boolean  @default(true)
+}
+
+model Quest {
+  id            String @id @default(uuid())
+  title         String
+  description   String
+  goalMinutes   Int
+  rewardFood    Int
+  isCompleted   Boolean @default(false)
+}

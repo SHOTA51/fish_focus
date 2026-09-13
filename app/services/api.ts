@@ -1,30 +1,49 @@
 import axios from 'axios';
+import { API_CONFIG } from '../constants/config';
+import { User, Quest } from '../types';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Create an axios instance to handle JWT tokens automatically
+const client = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+});
+
+// Interceptor to attach JWT token to every request
+client.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const api = {
-  async login(email, password) {
-    const { data } = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+  async login(email: string, password: string) {
+    const { data } = await client.post('/auth/login', { email, password });
+    // Save token for future requests
+    await AsyncStorage.setItem('token', data.token);
+    return data; 
+  },
+
+  async register(username: string, email: string, password: string) {
+    const { data } = await client.post('/auth/register', { username, email, password });
+    await AsyncStorage.setItem('token', data.token);
     return data;
   },
 
-  async register(username, email, password) {
-    const { data } = await axios.post(`${API_BASE_URL}/auth/register`, { username, email, password });
+  async getUserProfile(_id?: string) {
+    const { data } = await client.get('/user/profile');
+    return data as User;
+  },
+
+  async completeSession(duration: number, _userId?: string) {
+    const { data } = await client.post('/focus/complete', { duration });
     return data;
   },
 
-  async getUserProfile(userId) {
-    const { data } = await axios.get(`${API_BASE_URL}/user/${userId}`);
-    return data;
-  },
-
-  async completeSession(userId, duration) {
-    const { data } = await axios.post(`${API_BASE_URL}/focus/complete`, { userId, duration });
-    return data;
-  },
-
-  async getQuests(userId) {
-    const { data } = await axios.get(`${API_BASE_URL}/quests/${userId}`);
-    return data;
+  async getQuests() {
+    const { data } = await client.get('/quests');
+    return data as Quest[];
   },
 };

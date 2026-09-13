@@ -3,22 +3,27 @@ import { useState, useEffect, useRef } from 'react';
 export function useTimer(initialMinutes: number, onComplete: () => void) {
   const [secondsLeft, setSecondsLeft] = useState(initialMinutes * 60);
   const [isActive, setIsActive] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
 
   useEffect(() => {
-    if (isActive && secondsLeft > 0) {
+    if (isActive) {
       timerRef.current = setInterval(() => {
-        setSecondsLeft((prev) => prev - 1);
+        setSecondsLeft((prev) => {
+          if (prev <= 1) {
+            setIsActive(false);
+            onComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-    } else if (secondsLeft === 0) {
-      setIsActive(false);
-      onComplete();
     }
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, secondsLeft, onComplete]);
+  }, [isActive, onComplete]); // Removed secondsLeft from deps to prevent interval reset
 
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => {

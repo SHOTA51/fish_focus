@@ -1,11 +1,14 @@
 import React from "react";
 import { View, Text, Pressable, Alert, Image } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useFocusStore } from "../store/useFocusStore";
 import { api } from "../services/api";
 
 export default function SuccessScreen() {
   const { userId, setFish, setUser } = useFocusStore();
+  const { duration } = useLocalSearchParams<{ duration: string }>();
+
+  const focusDuration = duration ? parseInt(duration, 10) : 10;
 
   const handleClaimReward = async () => {
     if (!userId) {
@@ -15,8 +18,7 @@ export default function SuccessScreen() {
     }
 
     try {
-      // We mock the focus duration as 10 minutes for this basic demo
-      const { user, fish } = await api.completeSession(userId, 10);
+      const { user, fish } = await api.completeSession(focusDuration, userId);
       setUser(user);
       setFish(fish);
       router.replace("/");
@@ -28,21 +30,23 @@ export default function SuccessScreen() {
   return (
     <View className="flex-1 bg-[#EAF8FF] items-center justify-center px-6">
       <View className="mb-8 h-64 w-64 items-center justify-center rounded-full bg-[#D5F1FF]">
-      <Image source={require('../../assets/images/Group4.png')} />
+        <Image source={require('../../assets/images/Group4.png')} />
       </View>
 
       <Text className="text-4xl font-bold text-[#163B56] text-center">
         Focus Complete!
       </Text>
-      
+
       <Text className="mt-4 text-center text-lg text-[#6D8CA0]">
-        You've fed your fish! 
+        You've fed your fish!
         It's feeling much stronger now.
       </Text>
 
       <View className="mt-8 w-full max-w-sm rounded-3xl bg-white px-6 py-6 shadow-sm items-center">
         <Text className="text-sm font-medium text-[#8AA5B5]">Reward Earned</Text>
-        <Text className="text-3xl font-bold text-[#208AEF]">+10 EXP</Text>
+        <Text className="text-3xl font-bold text-[#208AEF]">
+          +{focusDuration * 1} EXP
+        </Text>
       </View>
 
       <Pressable

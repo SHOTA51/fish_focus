@@ -11,26 +11,28 @@ export default function LoginScreen() {
   const { setUserId, setUser, setFish } = useFocusStore();
 
   const handleLogin = async () => {
-    // 1. ใส่ข้อมูลหลอกๆ ให้ผ่านเงื่อนไขหน้า Home
-    setUser({
-      id: "demo-id-123",
-      username: "Demo User",
-      email: "demo@example.com",
-      totalFocusTime: 0
-    });
-    
-    // 2. เซ็ตข้อมูลปลาจำลอง (เพื่อให้หน้า Home มีข้อมูลไปแสดงผล)
-    setFish({ 
-      name: "Nemo", 
-      level: 1, 
-      stage: "fry" ,
-      experience: 0
-    });
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
 
-    await AsyncStorage.setItem('userId', 'demo-id-123');
+    try {
+      const response = await api.login(email, password);
+      const { userId, user } = response;
 
-    // 3. เด้งไปหน้า Index ทันที
-    router.replace("/");
+      // Update Store
+      setUser(user);
+      if (user.fish) {
+        setFish(user.fish);
+      }
+
+      // Persist ID
+      await setUserId(userId);
+
+      router.replace("/");
+    } catch (e) {
+      Alert.alert("Login Failed", "Invalid email or password. Please try again.");
+    }
   };
 
   return (
@@ -40,7 +42,6 @@ export default function LoginScreen() {
         className="flex-1 px-6"
       >
         <View className="flex-1 justify-center py-12">
-          {/* Hero Section */}
           <View className="items-center mb-12">
             <View className="h-24 w-24 rounded-full bg-blue-500 items-center justify-center shadow-lg mb-6">
               <Text className="text-5xl">🐠</Text>
@@ -53,7 +54,6 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          {/* Input Section */}
           <View className="gap-y-4 mb-8">
             <View className="rounded-3xl bg-white px-4 py-4 shadow-sm border border-sky-100">
               <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</Text>
@@ -81,7 +81,6 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* Actions */}
           <View className="gap-y-4">
             <Pressable
               onPress={handleLogin}

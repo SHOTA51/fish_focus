@@ -15,7 +15,8 @@ export default function RegisterScreen() {
     }
 
     try {
-      await api.register(email, username, password);
+      // Corrected argument order to match api.register(username, email, password)
+      await api.register(username, email, password);
       Alert.alert("Success!", "Account created! Please login to meet your fish.");
       router.replace("/login");
     } catch (e) {
@@ -30,7 +31,6 @@ export default function RegisterScreen() {
         className="flex-1"
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-12">
-          {/* Hero Section */}
           <View className="items-center mb-12">
             <View className="h-24 w-24 rounded-full bg-blue-500 items-center justify-center shadow-lg mb-6">
               <Text className="text-5xl">🐠</Text>
@@ -43,7 +43,6 @@ export default function RegisterScreen() {
             </Text>
           </View>
 
-          {/* Input Section */}
           <View className="gap-y-4 mb-8">
             <View className="rounded-3xl bg-white px-4 py-4 shadow-sm border border-sky-100">
               <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Username</Text>
@@ -83,7 +82,6 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Actions */}
           <View className="gap-y-4">
             <Pressable 
               onPress={handleRegister}
