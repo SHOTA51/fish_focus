@@ -15,13 +15,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npx expo start
    ```
-## start backend server
+## start backend server and database
 
    ```bash
    npm run dev
-   ```
-## start database
-   ```bash
    npx prisma generate
    npx prisma migrate dev
    ```

@@ -1,4 +1,18 @@
+export interface WeeklyActivity {
+  day: string;
+  minutes: number;
+}
+
+export interface Statistics {
+  totalFocusTime: number;
+  sessions: number;
+  fishLevel: number;
+  focusStreak: number;
+  weeklyActivity: WeeklyActivity[];
+}
+
 export interface User {
+
   id: string;
   username: string;
   email: string;
