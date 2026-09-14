@@ -47,7 +47,6 @@ export default function StatisticsScreen() {
           onPress={() => {
             setLoading(true);
             setError(null);
-            // In a real app, you'd call fetchStats again
           }} 
           className="px-6 py-3 bg-blue-600 rounded-2xl"
         >
@@ -66,13 +65,11 @@ export default function StatisticsScreen() {
     { label: "Focus Streak", value: `${stats.focusStreak} Days`, icon: "🔥", color: "bg-rose-100", textColor: "text-rose-600" },
   ];
 
-  // Find max minutes in the week to scale the bars
   const maxMinutes = Math.max(...stats.weeklyActivity.map(d => d.minutes), 1);
 
   return (
     <SafeAreaView className="flex-1 bg-sky-50">
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View className="flex-row items-center justify-between py-6">
           <Pressable 
             onPress={() => router.back()}
@@ -84,7 +81,6 @@ export default function StatisticsScreen() {
           <View className="h-12 w-12" />
         </View>
 
-        {/* Stats Bento Grid */}
         <View className="flex-row flex-wrap justify-between mb-8">
           {bentoStats.map((stat, i) => (
             <View key={i} className="w-[48%] rounded-3xl bg-white p-5 shadow-sm border border-sky-100 mb-4">
@@ -101,7 +97,6 @@ export default function StatisticsScreen() {
           ))}
         </View>
 
-        {/* Activity Chart Section */}
         <View className="rounded-3xl bg-white p-6 shadow-sm border border-sky-100 mb-10">
           <View className="flex-row items-center justify-between mb-6">
             <Text className="text-lg font-bold text-slate-900">Weekly Activity</Text>
@@ -111,7 +106,7 @@ export default function StatisticsScreen() {
           <View className="flex-row items-end justify-between h-40 px-2">
             {stats.weeklyActivity.map((dayData, i) => (
               <View key={i} className="items-center">
-                <View className="mb-2 h-4 w-1 rounded-full bg-slate-100" /> {/* Spacer */}
+                <View className="mb-2 h-4 w-1 rounded-full bg-slate-100" />
                 <View 
                   className="w-3 bg-blue-500 rounded-t-full shadow-sm" 
                   style={{ height: `${(dayData.minutes / maxMinutes) * 100}%` }} 
@@ -124,7 +119,6 @@ export default function StatisticsScreen() {
           </View>
         </View>
 
-        {/* Achievement Placeholder */}
         <View className="rounded-3xl bg-blue-600 p-6 shadow-lg mb-10 flex-row items-center">
           <View className="h-16 w-16 rounded-2xl bg-white/20 items-center justify-center mr-4">
             <Text className="text-3xl">🏆</Text>

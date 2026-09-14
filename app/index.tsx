@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useEffect } from "react";
 import { Pressable, Text, View, ScrollView, SafeAreaView, Image } from "react-native";
 import { router } from "expo-router";
@@ -19,15 +20,19 @@ export default function HomeScreen() {
       const storedId = await AsyncStorage.getItem('userId');
       if (storedId) {
         setUserId(storedId);
-        if (storedId === 'demo-id-123') {
-          setUser({ id: "demo-id-123", username: "Demo User", email: "demo@example.com", totalFocusTime: 0 });
-          setFish({ name: "Nemo", level: 1, stage: "fry", experience: 0 });
-        } else {
-          try {
-            await loadUserProfile(storedId);
-          } catch (error) {
-            console.error("Failed to load user profile:", error);
+        try {
+          await loadUserProfile(storedId);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            if (status === 401 || status === 404) {
+              console.error(`Session error (${status}): clearing user and redirecting to login`);
+              await AsyncStorage.removeItem('userId');
+              router.replace("/login");
+              return;
+            }
           }
+          console.error("Network or server error loading profile:", error);
         }
       } else {
         router.replace("/login");

@@ -25,6 +25,12 @@ export function useTimer(initialMinutes: number, onComplete: () => void) {
     };
   }, [isActive, onComplete]); // Removed secondsLeft from deps to prevent interval reset
 
+  useEffect(() => {
+    if (!isActive) {
+      setSecondsLeft(initialMinutes * 60);
+    }
+  }, [initialMinutes, isActive]);
+
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => {
     setIsActive(false);
