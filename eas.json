@@ -18,7 +18,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://fish-focus-backend.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://fish-focus.onrender.com/api"
       }
     }
   },
