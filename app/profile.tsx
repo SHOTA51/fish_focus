@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Pressable, SafeAreaView, ScrollView, Image } from "react-native";
+import { View, Text, Pressable, SafeAreaView, ScrollView } from "react-native";
 import { router } from "expo-router";
 import { useFocusStore } from "./store/useFocusStore";
+import { Fish } from "./components/Fish";
 
 export default function ProfileScreen() {
   const { fish, user } = useFocusStore();
@@ -43,9 +44,8 @@ export default function ProfileScreen() {
           </View>
 
           <View className="flex-row items-center gap-x-6">
-            <View className="h-24 w-24 rounded-3xl bg-blue-50 items-center justify-center border border-blue-100 shadow-inner">
-            <Image source={require('../assets/images/Group1.png')} className="w-12 h-12" 
-  resizeMode="contain"/>
+            <View className="h-24 w-24 rounded-3xl bg-sky-100/60 items-center justify-center border border-blue-100 shadow-inner overflow-hidden">
+              <Fish stage={fish?.stage} size={88} interactive={true} />
             </View>
             <View className="flex-1">
               <Text className="text-2xl font-bold text-slate-900">{fish?.name || "Bob"}</Text>

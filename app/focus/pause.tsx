@@ -1,12 +1,16 @@
 import React from "react";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
+import { useFocusStore } from "../store/useFocusStore";
+import { Fish } from "../components/Fish";
 
 export default function PauseScreen() {
+  const { fish } = useFocusStore();
+
   return (
     <View className="flex-1 bg-[#EAF8FF] items-center justify-center px-6">
-      <View className="mb-8 h-48 w-48 items-center justify-center rounded-full bg-white shadow-sm">
-      <Image source={require('../../assets/images/Group3.png')} className="w-24 h-24" resizeMode="contain" />
+      <View className="mb-8 h-56 w-56 items-center justify-center rounded-full bg-white shadow-md border-4 border-sky-100">
+        <Fish stage={fish?.stage} mood="sleeping" size={140} interactive={true} />
       </View>
 
       <Text className="text-3xl font-bold text-[#163B56] text-center">
@@ -14,7 +18,7 @@ export default function PauseScreen() {
       </Text>
       
       <Text className="mt-4 text-center text-base text-[#6D8CA0]">
-        Bob is napping. Come back when you're ready to focus again!
+        {fish?.name || "Bob"} is napping peacefully. Come back when you&apos;re ready to dive back in!
       </Text>
 
       <View className="mt-12 w-full gap-y-4">

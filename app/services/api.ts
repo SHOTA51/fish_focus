@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../constants/config';
 import { User, Quest, Statistics } from '../types';
 
@@ -16,7 +17,16 @@ client.interceptors.request.use(async (config) => {
   return config;
 });
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// Interceptor to clear invalid/expired token on 401 or 403
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      await AsyncStorage.multiRemove(['token', 'userId']);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const api = {
   async login(email: string, password: string) {

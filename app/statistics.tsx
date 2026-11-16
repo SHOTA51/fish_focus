@@ -15,7 +15,7 @@ export default function StatisticsScreen() {
         setLoading(true);
         const data = await api.getStatistics();
         setStats(data);
-      } catch (e) {
+      } catch {
         setError("Failed to load statistics");
       } finally {
         setLoading(false);

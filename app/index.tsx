@@ -1,9 +1,11 @@
-import axios from 'axios';
-import React, { useEffect } from "react";
-import { Pressable, Text, View, ScrollView, SafeAreaView, Image } from "react-native";
+import axios, { isAxiosError } from 'axios';
+import React, { useEffect, useState } from "react";
+import { Pressable, Text, View, ScrollView, SafeAreaView } from "react-native";
 import { router } from "expo-router";
 import { useFocusStore } from "./store/useFocusStore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FishTank } from "./components/FishTank";
+import { Fish, FishStage, FishColorTheme } from "./components/Fish";
 
 interface TabItemProps {
   icon: string;
@@ -13,21 +15,26 @@ interface TabItemProps {
 }
 
 export default function HomeScreen() {
-  const { userId, user, fish, setUserId, loadUserProfile, setUser, setFish } = useFocusStore();
+  const { user, fish, setUserId, loadUserProfile, setFishStage } = useFocusStore();
+  const [selectedStage, setSelectedStage] = useState<FishStage | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<FishColorTheme>("orange");
 
   useEffect(() => {
     const initUser = async () => {
       const storedId = await AsyncStorage.getItem('userId');
-      if (storedId) {
+      const storedToken = await AsyncStorage.getItem('token');
+
+      if (storedId && storedToken) {
         setUserId(storedId);
         try {
           await loadUserProfile(storedId);
         } catch (error) {
-          if (axios.isAxiosError(error)) {
+          if (isAxiosError(error)) {
             const status = error.response?.status;
-            if (status === 401 || status === 404) {
-              console.error(`Session error (${status}): clearing user and redirecting to login`);
-              await AsyncStorage.removeItem('userId');
+            if (status === 401 || status === 403 || status === 404) {
+              console.warn(`Session error (${status}): clearing credentials and redirecting to login`);
+              await AsyncStorage.multiRemove(['userId', 'token']);
+              setUserId(null);
               router.replace("/login");
               return;
             }
@@ -35,6 +42,7 @@ export default function HomeScreen() {
           console.error("Network or server error loading profile:", error);
         }
       } else {
+        await AsyncStorage.multiRemove(['userId', 'token']);
         router.replace("/login");
       }
     };
@@ -47,8 +55,20 @@ export default function HomeScreen() {
 
   if (!user) {
     return (
-      <View className="flex-1 bg-sky-50 items-center justify-center">
-        <Text className="text-slate-500 font-medium">Loading your aquatic friend...</Text>
+      <View className="flex-1 bg-sky-50 items-center justify-center px-6">
+        <Fish stage="fry" mood="idle" size={90} interactive={false} />
+        <Text className="text-slate-700 font-bold text-lg mt-4">Loading your aquatic friend...</Text>
+        <Text className="text-slate-400 text-xs mt-1 text-center">Connecting to Focus Fish server...</Text>
+        <Pressable
+          onPress={async () => {
+            await AsyncStorage.multiRemove(['userId', 'token']);
+            setUserId(null);
+            router.replace("/login");
+          }}
+          className="mt-6 px-4 py-2 bg-white rounded-full border border-sky-200 shadow-xs active:bg-sky-50"
+        >
+          <Text className="text-blue-500 font-bold text-xs">Back to Login</Text>
+        </Pressable>
       </View>
     );
   }
@@ -75,24 +95,68 @@ export default function HomeScreen() {
         </View>
 
         {/* The Fish Tank Area */}
-        <View className="relative my-6 overflow-hidden rounded-[40px] bg-blue-500 p-8 shadow-xl h-80 items-center justify-center">
-          {/* Background bubbles/decorations */}
-          <View className="absolute top-10 left-10 w-4 h-4 rounded-full bg-white/20" />
-          <View className="absolute bottom-20 right-12 w-6 h-6 rounded-full bg-white/10" />
-          <View className="absolute top-40 right-20 w-3 h-3 rounded-full bg-white/30" />
-          
-          {/* The Fish (Placeholder for image) */}
-          <View className="items-center justify-center">
-            <View className="mb-4 h-32 w-32 items-center justify-center rounded-full bg-white/20 border-2 border-white/30">
-               <Image source={require('../assets/images/Group1.png')} className="w-16 h-16" 
-            resizeMode="contain"/>
+        <View className="my-5">
+          <FishTank
+            stage={selectedStage || (fish?.stage as FishStage) || "juvenile"}
+            colorTheme={selectedTheme}
+            fishName={fish?.name || "Bob"}
+            level={fish?.level || 1}
+            mode="home"
+            height={320}
+          />
+
+          {/* Interactive Customization & Growth Stage Picker */}
+          <View className="mt-3 bg-white/80 p-3 rounded-2xl border border-sky-100 flex-row items-center justify-between shadow-xs">
+            {/* Stage Selector */}
+            <View className="flex-row items-center gap-1">
+              <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Stage:</Text>
+              {(["egg", "fry", "juvenile", "adult"] as FishStage[]).map((stg) => {
+                const isActive = (selectedStage || fish?.stage || "juvenile") === stg;
+                return (
+                  <Pressable
+                    key={stg}
+                    onPress={() => {
+                      setSelectedStage(stg);
+                      setFishStage(stg);
+                    }}
+                    className={`px-2.5 py-1 rounded-xl border ${
+                      isActive
+                        ? "bg-blue-500 border-blue-500"
+                        : "bg-white border-slate-200"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[11px] font-bold capitalize ${
+                        isActive ? "text-white" : "text-slate-600"
+                      }`}
+                    >
+                      {stg}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
-            <Text className="text-2xl font-bold text-white">
-              {fish?.name || "Bob"}
-            </Text>
-            <Text className="text-white/80 font-medium">
-              Level {fish?.level || 1} {fish?.stage || 'Baby'} Fish
-            </Text>
+
+            {/* Theme Selector */}
+            <View className="flex-row items-center gap-1.5 ml-2">
+              {(
+                [
+                  { key: "orange", color: "#FF512F" },
+                  { key: "cyan", color: "#00C6FF" },
+                  { key: "golden", color: "#F9D423" },
+                  { key: "sakura", color: "#FF758C" },
+                ] as { key: FishColorTheme; color: string }[]
+              ).map((t) => (
+                <Pressable
+                  key={t.key}
+                  onPress={() => setSelectedTheme(t.key)}
+                  style={{ backgroundColor: t.color }}
+                  className={`w-5 h-5 rounded-full border-2 ${
+                    selectedTheme === t.key ? "border-slate-800 scale-110" : "border-white"
+                  }`}
+                />
+              ))}
+            </View>
           </View>
         </View>
 

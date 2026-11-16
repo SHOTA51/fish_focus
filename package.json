@@ -42,6 +42,9 @@
   },
   "scripts": {
     "start": "expo start",
+    "dev": "npm --prefix server run dev",
+    "prisma:generate": "npm --prefix server run prisma:generate",
+    "prisma:migrate": "npm --prefix server run prisma:migrate",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",

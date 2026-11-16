@@ -10,6 +10,7 @@ interface FocusState {
   setUserId: (id: string | null) => Promise<void>;
   setUser: (user: User) => void;
   setFish: (fish: Fish) => void;
+  setFishStage: (stage: Fish['stage']) => void;
   addExperience: (amount: number) => void;
   loadUserProfile: (id?: string) => Promise<void>;
 }
@@ -17,7 +18,12 @@ interface FocusState {
 export const useFocusStore = create<FocusState>((set) => ({
   userId: null,
   user: null,
-  fish: null,
+  fish: {
+    name: 'Bob',
+    level: 1,
+    experience: 25,
+    stage: 'juvenile',
+  },
 
   setUserId: async (id) => {
     if (id) {
@@ -30,6 +36,9 @@ export const useFocusStore = create<FocusState>((set) => ({
 
   setUser: (user) => set({ user }),
   setFish: (fish) => set({ fish }),
+  setFishStage: (stage) => set((state) => ({
+    fish: state.fish ? { ...state.fish, stage } : { name: 'Bob', level: 1, experience: 0, stage }
+  })),
 
   addExperience: (amount) => set((state) => {
     if (!state.fish) return state;
@@ -37,10 +46,17 @@ export const useFocusStore = create<FocusState>((set) => ({
     const nextLevelExp = state.fish.level * 100;
     
     if (newExp >= nextLevelExp) {
+      const nextLevel = state.fish.level + 1;
+      let nextStage: Fish['stage'] = state.fish.stage;
+      if (nextLevel >= 10) nextStage = 'adult';
+      else if (nextLevel >= 5) nextStage = 'juvenile';
+      else if (nextLevel >= 2 && state.fish.stage === 'egg') nextStage = 'fry';
+
       return {
         fish: { 
           ...state.fish, 
-          level: state.fish.level + 1, 
+          level: nextLevel,
+          stage: nextStage,
           experience: newExp - nextLevelExp 
         }
       };
@@ -57,6 +73,7 @@ export const useFocusStore = create<FocusState>((set) => ({
       });
     } catch (e) {
       console.error("Failed to load profile", e);
+      throw e;
     }
   },
 }));

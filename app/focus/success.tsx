@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, Pressable, Alert, Image } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useFocusStore } from "../store/useFocusStore";
 import { api } from "../services/api";
+import { Fish } from "../components/Fish";
 
 export default function SuccessScreen() {
-  const { userId, setFish, setUser } = useFocusStore();
+  const { userId, setFish, setUser, fish } = useFocusStore();
   const { duration } = useLocalSearchParams<{ duration: string }>();
 
   const focusDuration = duration ? parseInt(duration, 10) : 10;
@@ -22,15 +23,22 @@ export default function SuccessScreen() {
       setUser(user);
       setFish(fish);
       router.replace("/");
-    } catch (e) {
+    } catch {
       Alert.alert("Error", "Failed to save focus session");
     }
   };
 
   return (
     <View className="flex-1 bg-[#EAF8FF] items-center justify-center px-6">
-      <View className="mb-8 h-64 w-64 items-center justify-center rounded-full bg-[#D5F1FF]">
-        <Image source={require('../../assets/images/Group4.png')} />
+      <View className="mb-8 h-64 w-64 items-center justify-center rounded-full bg-[#D5F1FF] border-4 border-white shadow-lg">
+        <Fish
+          stage={fish?.stage}
+          mood="happy"
+          size={165}
+          interactive={true}
+          showSpeech={true}
+          customMessage="YAY! We did it! 🎉"
+        />
       </View>
 
       <Text className="text-4xl font-bold text-[#163B56] text-center">
@@ -38,8 +46,7 @@ export default function SuccessScreen() {
       </Text>
 
       <Text className="mt-4 text-center text-lg text-[#6D8CA0]">
-        You've fed your fish!
-        It's feeling much stronger now.
+        You&apos;ve fed your fish! It&apos;s feeling much stronger now.
       </Text>
 
       <View className="mt-8 w-full max-w-sm rounded-3xl bg-white px-6 py-6 shadow-sm items-center">
