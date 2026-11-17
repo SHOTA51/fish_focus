@@ -1,89 +1,373 @@
 import React from "react";
-import { View, Text, Pressable, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, StyleSheet, StatusBar } from "react-native";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusStore } from "./store/useFocusStore";
 import { Fish } from "./components/Fish";
+import { BouncyButton } from "./components/BouncyButton";
+import {
+  DetailedDiverHelmet,
+  DetailedJournalDex,
+} from "./components/ui/DetailedAquaticAssets";
 
 export default function ProfileScreen() {
-  const { fish, user } = useFocusStore();
+  const { fish, user, setUserId } = useFocusStore();
+
+  const handleLogout = async () => {
+    await AsyncStorage.multiRemove(["userId", "token"]);
+    setUserId(null);
+    router.replace("/login");
+  };
+
+  const level = fish?.level || 1;
+  const exp = fish?.experience || 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-sky-50">
-      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
-        <View className="flex-row items-center justify-between py-6">
-          <Pressable 
-            onPress={() => router.back()}
-            className="h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-sky-100"
-          >
-            <Text className="text-xl">←</Text>
-          </Pressable>
-          <Text className="text-2xl font-extrabold text-slate-900 tracking-tight">My Profile</Text>
-          <View className="h-12 w-12" />
+        <View style={styles.header}>
+          <BouncyButton onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>←</Text>
+          </BouncyButton>
+          <Text style={styles.headerTitle}>โปรไฟล์ของฉัน</Text>
+          <View style={styles.placeholder} />
         </View>
 
-        {/* User Profile Section */}
-        <View className="items-center my-8">
-          <View className="relative">
-            <View className="h-32 w-32 rounded-full bg-white border-4 border-blue-500 items-center justify-center shadow-xl overflow-hidden">
-              <Text className="text-6xl">👤</Text>
+        {/* User Avatar & Info */}
+        <View style={styles.userSection}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarInner}>
+              <DetailedDiverHelmet size={44} />
             </View>
-            <View className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-green-500 border-4 border-white" />
+            <View style={styles.onlineStatusBadge} />
           </View>
-          <Text className="mt-4 text-2xl font-bold text-slate-900">{user?.username || "Fish Lover"}</Text>
-          <Text className="text-slate-500 font-medium">{user?.email || "user@example.com"}</Text>
+          <Text style={styles.userName}>{user?.username || "Explorer"}</Text>
+          <Text style={styles.userEmail}>{user?.email || "user@example.com"}</Text>
         </View>
 
-        {/* Fish Companion Card */}
-        <View className="mb-8 rounded-3xl bg-white p-6 shadow-sm border border-sky-100">
-          <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-xl font-bold text-slate-900">My Companion</Text>
-            <View className="px-3 py-1 rounded-full bg-blue-100">
-              <Text className="text-blue-600 font-bold text-xs">ACTIVE</Text>
+        {/* Companion Card */}
+        <View style={styles.companionCard}>
+          <View style={styles.companionCardHeader}>
+            <Text style={styles.companionCardTitle}>ปลาคู่หูของฉัน</Text>
+            <View style={styles.activeTag}>
+              <Text style={styles.activeTagText}>กำลังว่ายน้ำอยู่ 🌊</Text>
             </View>
           </View>
 
-          <View className="flex-row items-center gap-x-6">
-            <View className="h-24 w-24 rounded-3xl bg-sky-100/60 items-center justify-center border border-blue-100 shadow-inner overflow-hidden">
+          <View style={styles.companionBody}>
+            <View style={styles.fishBox}>
               <Fish stage={fish?.stage} size={88} interactive={true} />
             </View>
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-slate-900">{fish?.name || "Bob"}</Text>
-              <Text className="text-slate-500 font-medium mb-3">Level {fish?.level || 1} {fish?.stage || 'Baby'} Fish</Text>
-              
-              {/* XP Bar */}
-              <View>
-                <View className="flex-row justify-between mb-1">
-                  <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experience</Text>
-                  <Text className="text-[10px] font-bold text-blue-600">{fish?.experience || 0}%</Text>
+            <View style={styles.fishDetails}>
+              <Text style={styles.fishNameText}>{fish?.name || "น้องส้ม"}</Text>
+              <Text style={styles.fishLevelText}>
+                เลเวล {level} • วัย{(fish?.stage || "juvenile").toUpperCase()}
+              </Text>
+
+              {/* XP Track */}
+              <View style={styles.xpTrackWrapper}>
+                <View style={styles.xpRow}>
+                  <Text style={styles.xpTitle}>EXP</Text>
+                  <Text style={styles.xpPercent}>{exp}%</Text>
                 </View>
-                <View className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                  <View 
-                    className="h-full bg-blue-500" 
-                    style={{ width: `${fish?.experience || 0}%` }} 
-                  />
+                <View style={styles.xpTrack}>
+                  <View style={[styles.xpFill, { width: `${Math.min(exp, 100)}%` }]} />
                 </View>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Account Actions */}
-        <View className="gap-y-4 mb-10">
-          <Pressable className="flex-row items-center p-4 bg-white rounded-2xl border border-sky-100 shadow-sm">
-             <Text className="text-xl mr-4">🔒</Text>
-             <Text className="text-slate-700 font-semibold">Change Password</Text>
-          </Pressable>
-          
-          <Pressable 
-            onPress={() => router.replace("/login")}
-            className="flex-row items-center p-4 bg-white rounded-2xl border border-red-100 shadow-sm"
+        {/* Action List */}
+        <View style={styles.actionList}>
+          <BouncyButton
+            onPress={() => router.push("/settings")}
+            style={styles.actionItem}
           >
-             <Text className="text-xl mr-4">🚪</Text>
-             <Text className="text-red-500 font-bold">Logout</Text>
-          </Pressable>
+            <View style={styles.actionIconBadge}>
+              <Text style={styles.actionIconText}>⚙️</Text>
+            </View>
+            <Text style={styles.actionItemText}>ตั้งค่าแอปพลิเคชัน</Text>
+            <Text style={styles.actionChevron}>›</Text>
+          </BouncyButton>
+
+          <BouncyButton
+            onPress={() => router.push("/quest")}
+            style={styles.actionItem}
+          >
+            <View style={styles.actionIconBadge}>
+              <DetailedJournalDex size={22} />
+            </View>
+            <Text style={styles.actionItemText}>ภารกิจและอาหารปลา</Text>
+            <Text style={styles.actionChevron}>›</Text>
+          </BouncyButton>
+
+          <BouncyButton
+            onPress={handleLogout}
+            style={[styles.actionItem, styles.logoutItem]}
+          >
+            <View style={[styles.actionIconBadge, styles.logoutIconBadge]}>
+              <Text style={styles.actionIconText}>🚪</Text>
+            </View>
+            <Text style={styles.logoutText}>ออกจากระบบ (Logout)</Text>
+            <Text style={styles.actionChevron}>›</Text>
+          </BouncyButton>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F0F8FE",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  backButton: {
+    height: 46,
+    width: 46,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  backButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#0F172A",
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  placeholder: {
+    width: 46,
+  },
+  userSection: {
+    alignItems: "center",
+    marginVertical: 14,
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: 12,
+  },
+  avatarInner: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 3.5,
+    borderColor: "#FF7A59", // Warm Coral ring
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#FF7A59",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  avatarText: {
+    fontSize: 48,
+  },
+  onlineStatusBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#10B981",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+  userEmail: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 2,
+    fontWeight: "500",
+  },
+  companionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 26,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+  companionCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  companionCardTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  activeTag: {
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  activeTagText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#16A34A",
+  },
+  companionBody: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  fishBox: {
+    width: 90,
+    height: 90,
+    borderRadius: 22,
+    backgroundColor: "#F0F8FE",
+    borderWidth: 1.5,
+    borderColor: "#BAE6FD",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  fishDetails: {
+    flex: 1,
+  },
+  fishNameText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  fishLevelText: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+    fontWeight: "500",
+  },
+  xpTrackWrapper: {
+    marginTop: 10,
+  },
+  xpRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  xpTitle: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#94A3B8",
+  },
+  xpPercent: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FF7A59",
+  },
+  xpTrack: {
+    height: 8,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 9999,
+    overflow: "hidden",
+  },
+  xpFill: {
+    height: "100%",
+    backgroundColor: "#FF7A59",
+    borderRadius: 9999,
+  },
+  actionList: {
+    gap: 12,
+  },
+  actionItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  actionIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: "#F0F8FE",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  actionIconText: {
+    fontSize: 20,
+  },
+  actionItemText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  actionChevron: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#94A3B8",
+  },
+  logoutItem: {
+    borderColor: "#FEE2E2",
+    marginTop: 4,
+  },
+  logoutIconBadge: {
+    backgroundColor: "#FEF2F2",
+  },
+  logoutText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#EF4444",
+  },
+});

@@ -12,19 +12,29 @@ export interface Statistics {
 }
 
 export interface User {
-
   id: string;
   username: string;
   email: string;
   totalFocusTime: number;
-  fish?: Fish; // Added fish to user as the server nests it
+  fish?: Fish;
 }
 
+export type FishStage = 'egg' | 'fry' | 'juvenile' | 'adult';
+
 export interface Fish {
+  id?: string;
   level: number;
   experience: number;
   name: string;
-  stage: 'egg' | 'fry' | 'juvenile' | 'adult';
+  stage: FishStage;
+  food?: number; // Food inventory (0 - 20)
+}
+
+export interface EvolutionEvent {
+  fromStage: FishStage;
+  toStage: FishStage;
+  level: number;
+  fishName: string;
 }
 
 export interface FocusSession {

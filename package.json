@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/ui": "~57.0.16",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@rive-app/react-native": "^0.5.15",
     "axios": "^1.20.0",
     "expo": "~57.0.20",
     "expo-constants": "~57.0.17",
@@ -25,6 +26,7 @@
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
+    "react-native-nitro-modules": "^0.36.5",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -46,8 +48,8 @@
     "prisma:generate": "npm --prefix server run prisma:generate",
     "prisma:migrate": "npm --prefix server run prisma:migrate",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },

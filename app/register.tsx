@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,17 +10,60 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
 import { isAxiosError } from "axios";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { api } from "./services/api";
 import { API_CONFIG } from "./constants/config";
+import { Fish } from "./components/Fish";
+import { BouncyButton } from "./components/BouncyButton";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Floating gentle bobbing animation
+  const fishY = useSharedValue(0);
+  const bubbleScale = useSharedValue(0.9);
+
+  useEffect(() => {
+    fishY.value = withRepeat(
+      withSequence(
+        withTiming(-8, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 1800, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      true
+    );
+    bubbleScale.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 2200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.9, { duration: 2200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const fishAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: fishY.value }],
+  }));
+
+  const bubbleAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: bubbleScale.value }],
+  }));
 
   const handleRegister = async () => {
     const trimmedEmail = email.trim();
@@ -34,9 +77,11 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
       await api.register(trimmedUsername, trimmedEmail, password);
-      Alert.alert("สำเร็จ!", "สร้างบัญชีเรียบร้อยแล้ว! กรุณาเข้าสู่ระบบเพื่อพบกับน้องปลาของคุณ 🐠", [
-        { text: "เข้าสู่ระบบ", onPress: () => router.replace("/login") },
-      ]);
+      Alert.alert(
+        "สร้างบัญชีสำเร็จ!",
+        "ยินดีต้อนรับเพื่อนใหม่! เข้าสู่ระบบเพื่อเริ่มเลี้ยงน้องปลากันเลย 🐠",
+        [{ text: "เข้าสู่ระบบ", onPress: () => router.replace("/login") }]
+      );
     } catch (e) {
       let errorMessage = "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง";
 
@@ -77,33 +122,36 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-sky-50">
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        style={styles.container}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-12">
-          <View className="items-center mb-10">
-            <View className="h-24 w-24 rounded-full bg-blue-500 items-center justify-center shadow-lg mb-6">
-              <Text className="text-5xl">🐠</Text>
-            </View>
-            <Text className="text-4xl font-extrabold text-slate-900 tracking-tight text-center">
-              Join the Ocean!
-            </Text>
-            <Text className="text-slate-500 font-medium mt-2 text-center">
-              Create an account and adopt a fish 🌊
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Decorative Floating Fish Hero */}
+          <View style={styles.heroSection}>
+            <Animated.View style={[styles.haloBubble, bubbleAnimatedStyle]} />
+            <Animated.View style={[styles.fishContainer, fishAnimatedStyle]}>
+              <Fish stage="fry" mood="happy" size={100} interactive={false} />
+            </Animated.View>
+            <Text style={styles.brandTitle}>เข้าร่วมอาณาจักรปลา</Text>
+            <Text style={styles.brandSubtitle}>
+              สร้างบัญชีเพื่อรับเลี้ยงและเติบโตไปพร้อมกับน้องปลา 🌊
             </Text>
           </View>
 
-          <View className="gap-y-4 mb-8">
-            <View className="rounded-3xl bg-white px-4 py-4 shadow-sm border border-sky-100">
-              <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                Username
-              </Text>
+          {/* Form Card */}
+          <View style={styles.card}>
+            {/* Username */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>EXPLORER NAME (ชื่อของคุณ)</Text>
               <TextInput
-                className="text-lg text-slate-900"
-                placeholder="Your cool name"
-                placeholderTextColor="#cbd5e1"
+                style={styles.textInput}
+                placeholder="ชื่อเล่นเท่ๆ ของคุณ"
+                placeholderTextColor="#94A3B8"
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="words"
@@ -111,14 +159,13 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <View className="rounded-3xl bg-white px-4 py-4 shadow-sm border border-sky-100">
-              <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                Email Address
-              </Text>
+            {/* Email */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>EMAIL ADDRESS</Text>
               <TextInput
-                className="text-lg text-slate-900"
+                style={styles.textInput}
                 placeholder="email@example.com"
-                placeholderTextColor="#cbd5e1"
+                placeholderTextColor="#94A3B8"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -128,47 +175,58 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <View className="rounded-3xl bg-white px-4 py-4 shadow-sm border border-sky-100">
-              <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                Password
-              </Text>
+            {/* Password */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.passwordHeader}>
+                <Text style={styles.fieldLabel}>PASSWORD</Text>
+                <Pressable
+                  hitSlop={8}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text style={styles.toggleText}>
+                    {showPassword ? "ซ่อน" : "แสดง"}
+                  </Text>
+                </Pressable>
+              </View>
               <TextInput
-                className="text-lg text-slate-900"
+                style={styles.textInput}
                 placeholder="••••••••"
-                placeholderTextColor="#cbd5e1"
+                placeholderTextColor="#94A3B8"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 editable={!isLoading}
               />
             </View>
-          </View>
 
-          <View className="gap-y-4">
-            <Pressable
+            {/* Coral Create Account Button */}
+            <BouncyButton
               onPress={handleRegister}
               disabled={isLoading}
-              className={`rounded-2xl py-4 items-center shadow-md ${
-                isLoading ? "bg-blue-300" : "bg-blue-500 active:bg-blue-600"
-              }`}
+              style={[
+                styles.primaryButton,
+                isLoading && styles.primaryButtonDisabled,
+              ]}
             >
               {isLoading ? (
-                <View className="flex-row items-center gap-x-2">
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text className="text-white text-lg font-bold">กำลังสร้างบัญชี...</Text>
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <Text style={styles.primaryButtonText}>กำลังสร้างบัญชี...</Text>
                 </View>
               ) : (
-                <Text className="text-white text-lg font-bold">Create Account</Text>
+                <Text style={styles.primaryButtonText}>สร้างบัญชีและรับเลี้ยงปลา</Text>
               )}
-            </Pressable>
+            </BouncyButton>
 
+            {/* Login Link */}
             <Pressable
               onPress={() => router.push("/login")}
               disabled={isLoading}
-              className="py-3 items-center"
+              style={styles.switchAuthButton}
             >
-              <Text className="text-slate-500 font-medium">
-                Already have an account? <Text className="text-blue-500 font-bold">Login</Text>
+              <Text style={styles.switchAuthText}>
+                มีบัญชีอยู่แล้ว?{" "}
+                <Text style={styles.switchAuthHighlight}>เข้าสู่ระบบที่นี่</Text>
               </Text>
             </Pressable>
           </View>
@@ -177,3 +235,138 @@ export default function RegisterScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F0F8FE",
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  heroSection: {
+    alignItems: "center",
+    marginBottom: 24,
+    position: "relative",
+  },
+  haloBubble: {
+    position: "absolute",
+    top: -8,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: "rgba(224, 242, 254, 0.7)",
+  },
+  fishContainer: {
+    height: 100,
+    width: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  brandTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.5,
+  },
+  brandSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 4,
+    textAlign: "center",
+    fontWeight: "500",
+    paddingHorizontal: 12,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+  },
+  fieldContainer: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 2,
+  },
+  passwordHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  toggleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0284C7",
+    paddingHorizontal: 4,
+  },
+  textInput: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: "#0F172A",
+    fontWeight: "500",
+  },
+  primaryButton: {
+    backgroundColor: "#FF7A59",
+    borderRadius: 20,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#FF7A59",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.7,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  switchAuthButton: {
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  switchAuthText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  switchAuthHighlight: {
+    color: "#FF7A59",
+    fontWeight: "800",
+  },
+});

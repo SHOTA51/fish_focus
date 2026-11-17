@@ -47,9 +47,26 @@ export const api = {
     return data as User;
   },
 
-  async completeSession(duration: number, _userId?: string) {
-    const { data } = await client.post('/focus/complete', { duration });
+  async completeSession(
+    duration: number,
+    _userId?: string,
+    extra?: { earnedExp?: number; clientLevel?: number; clientStage?: string }
+  ) {
+    const { data } = await client.post('/focus/complete', {
+      duration,
+      ...extra,
+    });
     return data;
+  },
+
+  async syncFish(fishData: { level?: number; experience?: number; stage?: string; name?: string }) {
+    try {
+      const { data } = await client.put('/user/fish', fishData);
+      return data;
+    } catch (err) {
+      // Graceful fallback if backend route is not deployed yet
+      return null;
+    }
   },
 
   async getQuests() {

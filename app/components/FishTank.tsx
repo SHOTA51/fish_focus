@@ -24,7 +24,15 @@ import Svg, {
   Rect,
 } from "react-native-svg";
 import { Fish, FishStage, FishMood, FishColorTheme } from "./Fish";
+import { RiveFish } from "./RiveFish";
+import {
+  DetailedFeedIcon,
+  DetailedTrickIcon,
+  DetailedPetIcon,
+  DetailedCoralCluster,
+} from "./ui/DetailedAquaticAssets";
 import { useFocusStore } from "../store/useFocusStore";
+import { router } from "expo-router";
 
 export interface FishTankProps {
   stage?: FishStage;
@@ -65,7 +73,7 @@ export const FishTank: React.FC<FishTankProps> = ({
   height = 320,
   onFeed,
 }) => {
-  const { fish, addExperience } = useFocusStore();
+  const { fish, feedFish } = useFocusStore();
 
   const stage: FishStage = stageProp || (fish?.stage as FishStage) || "juvenile";
   const fishName = nameProp || fish?.name || "Bob";
@@ -160,6 +168,25 @@ export const FishTank: React.FC<FishTankProps> = ({
       setRipples((prev) => prev.filter((r) => r.id !== rippleId));
     }, 900);
 
+    // Check food inventory!
+    const foodCount = fish?.food ?? 0;
+    if (foodCount <= 0) {
+      setExpBonusText("อาหารหมดแล้ว! โฟกัสเพื่อหาอาหาร 🍲");
+      setTimeout(() => setExpBonusText(null), 2500);
+      return;
+    }
+
+    // Deduct 1 food & grant exp
+    const result = feedFish();
+    if (!result.success) {
+      setExpBonusText("อาหารหมดแล้ว! โฟกัสเพื่อหาอาหาร 🍲");
+      setTimeout(() => setExpBonusText(null), 2500);
+      return;
+    }
+
+    setExpBonusText("+10 EXP ✨ (-1 🍲)");
+    setTimeout(() => setExpBonusText(null), 1800);
+
     // Drop food pellet (max 4 on screen)
     const pelletId = nextPelletId.current++;
     setPellets((prev) => [...prev.slice(-3), { id: pelletId, x: locationX, y: locationY }]);
@@ -167,6 +194,19 @@ export const FishTank: React.FC<FishTankProps> = ({
 
   // Quick Action: Drop Food button
   const dropFoodPellet = () => {
+    const foodCount = fish?.food ?? 0;
+    if (foodCount <= 0) {
+      setExpBonusText("อาหารหมดแล้ว! โฟกัสเพื่อหาอาหาร 🍲");
+      setTimeout(() => setExpBonusText(null), 2500);
+      return;
+    }
+
+    const result = feedFish();
+    if (!result.success) return;
+
+    setExpBonusText("+10 EXP ✨ (-1 🍲)");
+    setTimeout(() => setExpBonusText(null), 1800);
+
     const rx = 80 + Math.random() * (tankSize.width - 160);
     const ry = 60 + Math.random() * 80;
     const pelletId = nextPelletId.current++;
@@ -278,12 +318,14 @@ export const FishTank: React.FC<FishTankProps> = ({
         setIsEating(false);
         setIsHappy(true);
 
-        // Give experience
-        addExperience(5);
         onFeed?.();
-
-        setExpBonusText("+5 EXP 🍤");
+        setExpBonusText("+10 EXP 😋💖");
         setTimeout(() => setExpBonusText(null), 1800);
+
+        // Check if feeding triggered an evolution!
+        if (useFocusStore.getState().pendingEvolution) {
+          router.push("/focus/evolve");
+        }
 
         setTimeout(() => {
           isTargetingFoodRef.current = false;
@@ -293,7 +335,7 @@ export const FishTank: React.FC<FishTankProps> = ({
     }, 20);
 
     return () => clearTimeout(timer);
-  }, [pellets, mode, addExperience, onFeed]);
+  }, [pellets, mode, onFeed]);
 
   // Animated styles for Fish position inside tank
   const fishPositionAnimStyle = useAnimatedStyle(() => {
@@ -381,6 +423,11 @@ export const FishTank: React.FC<FishTankProps> = ({
         />
       </Svg>
 
+      {/* Detailed Coral Reef Bed Layer */}
+      <View style={{ position: "absolute", bottom: -4, left: 8, opacity: 0.95 }} pointerEvents="none">
+        <DetailedCoralCluster width={115} height={75} />
+      </View>
+
       {/* Ambient Rising Bubbles */}
       {bubbles.map((b) => (
         <RisingBubble key={b.id} bubble={b} maxHeight={height} />
@@ -442,16 +489,16 @@ export const FishTank: React.FC<FishTankProps> = ({
         </View>
       </View>
 
-      {/* Bottom Floating Interactive Toolbar */}
+      {/* Bottom Floating Interactive Toolbar (Detailed Custom SVG Vector Assets) */}
       {mode === "home" && (
         <View style={styles.bottomToolbar} pointerEvents="box-none">
           <Pressable style={styles.toolBtn} onPress={dropFoodPellet}>
-            <Text style={styles.toolBtnIcon}>🍤</Text>
+            <DetailedFeedIcon size={24} />
             <Text style={styles.toolBtnLabel}>Feed</Text>
           </Pressable>
 
           <Pressable style={styles.toolBtn} onPress={doTrick}>
-            <Text style={styles.toolBtnIcon}>💫</Text>
+            <DetailedTrickIcon size={24} />
             <Text style={styles.toolBtnLabel}>Trick</Text>
           </Pressable>
 
@@ -462,7 +509,7 @@ export const FishTank: React.FC<FishTankProps> = ({
               setTimeout(() => setIsHappy(false), 2000);
             }}
           >
-            <Text style={styles.toolBtnIcon}>💖</Text>
+            <DetailedPetIcon size={24} />
             <Text style={styles.toolBtnLabel}>Pet</Text>
           </Pressable>
         </View>

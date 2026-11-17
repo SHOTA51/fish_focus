@@ -1,95 +1,268 @@
 import React, { useState } from "react";
-import { Pressable, SafeAreaView, Text, TextInput, View } from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  View,
+  ScrollView,
+  Switch,
+  StyleSheet,
+  StatusBar,
+} from "react-native";
 import { router } from "expo-router";
-
-const menuItems = [
-  { label: "Profile", icon: "◯" },
-  { label: "Quest", icon: "◍" },
-  { label: "Notification", icon: "◔" },
-  { label: "Setting", icon: "⚙" },
-  { label: "Statistics", icon: "▤" },
-];
+import { BouncyButton } from "./components/BouncyButton";
 
 export default function SettingsScreen() {
-  const [selected, setSelected] = useState("Setting");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f2f1ee]">
-      <View className="flex-1 flex-row">
-        <View className="w-[42%] bg-[#f5f4f2] px-4 pt-3">
-          <View className="mb-3 flex-row items-center justify-between px-1">
-            <View className="flex-row items-center">
-              <Text className="text-xl font-black tracking-tight text-[#1d1d1d]">5G</Text>
-            </View>
-            <View className="h-5 w-10 items-end justify-center rounded-full border border-[#1d1d1d] px-1">
-              <View className="h-3 w-5 rounded-full bg-[#1d1d1d]/80" />
-            </View>
-          </View>
-
-          <View className="mt-4">
-            {menuItems.map((item) => {
-              const active = item.label === selected;
-
-              return (
-                <Pressable
-                  key={item.label}
-                  onPress={() => {
-                    setSelected(item.label);
-                    if (item.label === "Profile") router.push("/profile");
-                    if (item.label === "Statistics") router.push("/statistics");
-                  }}
-                  className={`flex-row items-center border-b border-[#1f1f1f]/30 py-4 ${
-                    active ? "bg-[#dfe0dd]" : "bg-transparent"
-                  }`}
-                >
-                  <Text className="ml-2 mr-4 text-[30px] font-medium text-[#1c1c1c]">
-                    {item.icon}
-                  </Text>
-                  <Text className="text-[20px] font-medium text-[#1c1c1c]">
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <BouncyButton onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>←</Text>
+          </BouncyButton>
+          <Text style={styles.headerTitle}>การตั้งค่า</Text>
+          <View style={styles.placeholder} />
         </View>
 
-        <View className="flex-1 bg-[#b9b8b5] px-4 pb-4 pt-5">
-          <View className="mb-6 flex-row justify-end">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-12 w-12 items-center justify-center rounded-xl bg-[#dedcd8]"
-            >
-              <Text className="text-3xl font-black text-[#1b1b1b]">←</Text>
-            </Pressable>
-          </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* General App Settings */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionHeader}>ประสบการณ์การโฟกัส</Text>
 
-          <View className="mt-10 items-center justify-center">
-            <Text className="mb-3 text-[22px] font-medium text-[#1b1b1b]">one!</Text>
-
-            <View className="relative h-44 w-[210px] items-center justify-center">
-              <View className="absolute bottom-0 h-24 w-[170px] rounded-[80px] border-[3px] border-[#1b1b1b] bg-transparent" />
-              <View className="absolute bottom-[24px] left-[20px] h-10 w-[130px] rounded-[50px] border-[3px] border-[#1b1b1b] bg-transparent" />
-              <View className="absolute bottom-[58px] left-[52px] h-7 w-[58px] rounded-full border-[3px] border-[#1b1b1b] bg-transparent" />
-              <View className="absolute bottom-[54px] left-[86px] h-2 w-2 rounded-full bg-[#1b1b1b]" />
-              <View className="absolute bottom-[52px] left-[70px] h-3 w-5 rounded-full border-[2px] border-[#1b1b1b] bg-transparent" />
-              <View className="absolute bottom-[36px] left-[72px] h-2 w-2 rounded-full bg-[#1b1b1b]" />
-              <View className="absolute bottom-[36px] left-[102px] h-2 w-2 rounded-full bg-[#1b1b1b]" />
-              <View className="absolute bottom-[60px] left-[118px] h-4 w-5 rounded-full border-[2px] border-[#1b1b1b] bg-transparent" />
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingTitle}>เสียงเอฟเฟกต์ฟองน้ำ</Text>
+                <Text style={styles.settingDesc}>
+                  เล่นเสียงผ่อนคลายเบาๆ ขณะจับเวลา
+                </Text>
+              </View>
+              <Switch
+                value={soundEnabled}
+                onValueChange={setSoundEnabled}
+                trackColor={{ false: "#E2E8F0", true: "#FF7A59" }}
+                thumbColor="#FFFFFF"
+              />
             </View>
 
-            <View className="mt-5 w-[180px] rounded-md border border-[#1b1b1b]/30 bg-[#d8d7d4] px-3 py-2">
-              <TextInput
-                value="ne"
-                editable={false}
-                className="text-lg text-[#1b1b1b]"
-                placeholder="ne"
-                placeholderTextColor="#4b4b4b"
+            <View style={styles.divider} />
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingTitle}>การสั่นตอบสนอง (Haptics)</Text>
+                <Text style={styles.settingDesc}>
+                  สั่นเบาๆ เมื่อเริ่มหรือหมดเวลาเซสชัน
+                </Text>
+              </View>
+              <Switch
+                value={hapticsEnabled}
+                onValueChange={setHapticsEnabled}
+                trackColor={{ false: "#E2E8F0", true: "#FF7A59" }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingTitle}>การแจ้งเตือนให้อาหารปลา</Text>
+                <Text style={styles.settingDesc}>
+                  เตือนเมื่อถึงเวลาให้อาหารและฝึกสมาธิ
+                </Text>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={setNotificationsEnabled}
+                trackColor={{ false: "#E2E8F0", true: "#FF7A59" }}
+                thumbColor="#FFFFFF"
               />
             </View>
           </View>
-        </View>
+
+          {/* Quick Links Card */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionHeader}>เมนูด่วน</Text>
+
+            <BouncyButton
+              onPress={() => router.push("/profile")}
+              style={styles.menuRow}
+            >
+              <Text style={styles.menuIcon}>👤</Text>
+              <Text style={styles.menuTitle}>โปรไฟล์ผู้สำรวจ</Text>
+              <Text style={styles.menuChevron}>›</Text>
+            </BouncyButton>
+
+            <View style={styles.divider} />
+
+            <BouncyButton
+              onPress={() => router.push("/statistics")}
+              style={styles.menuRow}
+            >
+              <Text style={styles.menuIcon}>📊</Text>
+              <Text style={styles.menuTitle}>สถิติและการเติบโต</Text>
+              <Text style={styles.menuChevron}>›</Text>
+            </BouncyButton>
+
+            <View style={styles.divider} />
+
+            <BouncyButton
+              onPress={() => router.push("/quest")}
+              style={styles.menuRow}
+            >
+              <Text style={styles.menuIcon}>📜</Text>
+              <Text style={styles.menuTitle}>ภารกิจและอาหารปลา</Text>
+              <Text style={styles.menuChevron}>›</Text>
+            </BouncyButton>
+          </View>
+
+          {/* App Info Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.appNameText}>Focus Fish • Beta 1.0.1</Text>
+            <Text style={styles.appDescText}>
+              ออกแบบเพื่อช่วยคุณมีสมาธิและเติบโตเคียงข้างเพื่อนใต้น้ำ 🌊
+            </Text>
+          </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F0F8FE",
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  backButton: {
+    height: 46,
+    width: 46,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  backButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#0F172A",
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  placeholder: {
+    width: 46,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  sectionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#94A3B8",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 14,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  settingInfo: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  settingTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  settingDesc: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 10,
+  },
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  menuIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  menuTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  menuChevron: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#94A3B8",
+  },
+  footer: {
+    alignItems: "center",
+    paddingVertical: 24,
+  },
+  appNameText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#94A3B8",
+  },
+  appDescText: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 4,
+    textAlign: "center",
+  },
+});

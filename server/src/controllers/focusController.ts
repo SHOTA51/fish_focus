@@ -4,7 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 
 export const completeSession = async (req: AuthRequest, res: Response) => {
   try {
-    const { duration } = req.body;
+    const { duration, earnedExp: clientExp, clientLevel, clientStage } = req.body;
     const userId = req.userId!;
 
     const user = await prisma.user.findUnique({
@@ -20,19 +20,33 @@ export const completeSession = async (req: AuthRequest, res: Response) => {
       data: { totalFocusTime: { increment: duration } }
     });
 
-    // 2. Update Fish Experience
+    // 2. Update Fish Experience (Honor client progress if higher, e.g. from feeding food or offline)
     let { level, experience, stage } = user.fish;
-    experience += duration;
-
-    const nextLevelExp = level * 100;
-    if (experience >= nextLevelExp) {
-      level += 1;
-      experience -= nextLevelExp;
-      
-      if (level >= 10) stage = 'adult';
-      else if (level >= 5) stage = 'juvenile';
-      else if (level >= 2) stage = 'fry';
+    if (clientLevel && clientLevel > level) {
+      level = clientLevel;
+      stage = clientStage || stage;
     }
+
+    const earnedExp = clientExp !== undefined ? clientExp : (duration * 2);
+    experience += earnedExp;
+
+    let targetExp = level <= 1 ? 50 : level * 75;
+    while (experience >= targetExp) {
+      level += 1;
+      experience -= targetExp;
+
+      // Pokemon evolution thresholds
+      if (level >= 12) stage = 'adult';
+      else if (level >= 6) stage = 'juvenile';
+      else if (level >= 2) stage = 'fry';
+
+      targetExp = level * 75;
+    }
+
+    // Strictly ensure stage cannot be lower than level threshold
+    if (level >= 12) stage = 'adult';
+    else if (level >= 6 && (stage === 'egg' || stage === 'fry')) stage = 'juvenile';
+    else if (level >= 2 && stage === 'egg') stage = 'fry';
 
     const updatedFish = await prisma.fish.update({
       where: { id: user.fish.id },

@@ -4,7 +4,19 @@ export function useTimer(initialMinutes: number, onComplete: () => void) {
   const [secondsLeft, setSecondsLeft] = useState(initialMinutes * 60);
   const [isActive, setIsActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  
+  const onCompleteRef = useRef(onComplete);
+
+  // Keep latest onComplete callback in ref to prevent unnecessary timer resets
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  // When initialMinutes changes and timer is not running, update secondsLeft
+  useEffect(() => {
+    if (!isActive) {
+      setSecondsLeft(initialMinutes * 60);
+    }
+  }, [initialMinutes, isActive]);
 
   useEffect(() => {
     if (isActive) {
@@ -12,7 +24,7 @@ export function useTimer(initialMinutes: number, onComplete: () => void) {
         setSecondsLeft((prev) => {
           if (prev <= 1) {
             setIsActive(false);
-            onComplete();
+            onCompleteRef.current?.();
             return 0;
           }
           return prev - 1;
@@ -23,16 +35,7 @@ export function useTimer(initialMinutes: number, onComplete: () => void) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, onComplete]); // Removed secondsLeft from deps to prevent interval reset
-
-  const [prevMinutes, setPrevMinutes] = useState(initialMinutes);
-
-  if (initialMinutes !== prevMinutes) {
-    setPrevMinutes(initialMinutes);
-    if (!isActive) {
-      setSecondsLeft(initialMinutes * 60);
-    }
-  }
+  }, [isActive]);
 
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => {

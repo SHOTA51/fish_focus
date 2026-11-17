@@ -510,6 +510,9 @@ const RenderEgg = ({
 // ==========================================
 // 2. FRY (BABY FISH) MODEL
 // ==========================================
+// ==========================================
+// 2. FRY (BABY FISH) MODEL - HIGH DETAIL BESPOKE VECTOR
+// ==========================================
 const RenderFry = ({
   theme,
   size,
@@ -533,107 +536,164 @@ const RenderFry = ({
     <View style={{ width: size, height }}>
       <Svg width={size} height={height} viewBox="0 0 100 70">
         <Defs>
-          <LinearGradient id="fryGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+          <LinearGradient id="fryGrad" x1="0%" y1="0%" x2="100%" y2="90%">
             <Stop offset="0%" stopColor={theme.primaryLight} />
-            <Stop offset="100%" stopColor={theme.primaryDark} />
+            <Stop offset="45%" stopColor={theme.primaryDark} />
+            <Stop offset="100%" stopColor={theme.finGradientEnd} />
           </LinearGradient>
           <LinearGradient id="fryBelly" x1="0%" y1="0%" x2="0%" y2="100%">
-            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
             <Stop offset="100%" stopColor={theme.belly} />
           </LinearGradient>
+          <LinearGradient id="fryFinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor={theme.finGradientStart} stopOpacity="0.95" />
+            <Stop offset="70%" stopColor={theme.finGradientEnd} stopOpacity="0.85" />
+            <Stop offset="100%" stopColor={theme.accentGlow} stopOpacity="0.75" />
+          </LinearGradient>
+          <RadialGradient id="fryBlushGrad" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={theme.blush} stopOpacity="0.8" />
+            <Stop offset="60%" stopColor={theme.blush} stopOpacity="0.4" />
+            <Stop offset="100%" stopColor={theme.blush} stopOpacity="0" />
+          </RadialGradient>
         </Defs>
+
+        {/* Baby Dorsal Crest */}
+        <Path
+          d="M 50 22 Q 58 14 66 22 Q 58 24 50 22 Z"
+          fill="url(#fryFinGrad)"
+          opacity="0.88"
+        />
 
         {/* Tail Fin Layer with Reanimated Anchor */}
         <Animated.View
           style={[
             styles.partContainer,
             tailAnimStyle,
-            { left: "12%", top: "40%", width: "25%", height: "30%" },
+            { left: "10%", top: "34%", width: "28%", height: "36%" },
           ]}
         >
-          <Svg width="100%" height="100%" viewBox="0 0 25 25">
+          <Svg width="100%" height="100%" viewBox="0 0 28 28">
             <Path
-              d="M 24 12 C 16 5 2 4 1 12 C 2 20 16 19 24 12 Z"
-              fill={theme.finGradientStart}
-              opacity="0.9"
+              d="M 26 14 C 18 4 4 2 1 10 C 6 13 6 15 1 18 C 4 26 18 24 26 14 Z"
+              fill="url(#fryFinGrad)"
             />
+            {/* Delicate Fin Rays */}
+            <Path d="M 24 14 Q 14 8 4 5" stroke="rgba(255, 255, 255, 0.55)" strokeWidth="0.9" fill="none" />
+            <Path d="M 24 14 Q 12 14 3 14" stroke="rgba(255, 255, 255, 0.55)" strokeWidth="0.9" fill="none" />
+            <Path d="M 24 14 Q 14 20 4 23" stroke="rgba(255, 255, 255, 0.55)" strokeWidth="0.9" fill="none" />
+            {/* Scalloped edge highlight */}
+            <Path d="M 2 8 Q 6 14 2 20" stroke={theme.accentGlow} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.8" />
           </Svg>
         </Animated.View>
 
-        {/* Fry Body */}
+        {/* Ventral Baby Fin */}
+        <Path
+          d="M 48 44 Q 44 52 38 52 Q 42 46 46 43 Z"
+          fill="url(#fryFinGrad)"
+          opacity="0.8"
+        />
+
+        {/* Fry Body - Streamlined Chubby Anatomy */}
         <G>
-          {/* Main chubby body */}
-          <Ellipse cx="58" cy="35" rx="22" ry="16" fill="url(#fryGrad)" />
-          {/* Soft belly */}
+          {/* Main Body */}
           <Path
-            d="M 45 42 Q 58 50 72 41 Q 62 48 45 42 Z"
+            d="M 36 36 C 36 21 54 18 72 24 C 82 28 85 35 81 41 C 72 49 52 51 40 45 C 37 42 36 39 36 36 Z"
+            fill="url(#fryGrad)"
+          />
+
+          {/* Dorsal Spine Specular Shimmer */}
+          <Path
+            d="M 44 23 Q 58 19 72 25"
+            stroke="rgba(255, 255, 255, 0.55)"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            fill="none"
+          />
+
+          {/* Pearlescent Belly */}
+          <Path
+            d="M 42 42 C 52 49 68 47 78 39 C 68 45 53 45 42 42 Z"
             fill="url(#fryBelly)"
           />
-          {/* Cute Rosy Cheek */}
-          <Circle cx="68" cy="40" r="4.5" fill={theme.blush} opacity="0.65" />
+
+          {/* Delicate Iridescent Scales */}
+          <Path d="M 50 31 Q 54 28 58 31" stroke="rgba(255, 255, 255, 0.45)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
+          <Path d="M 56 35 Q 60 32 64 35" stroke="rgba(255, 255, 255, 0.45)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
+          <Path d="M 48 37 Q 52 34 56 37" stroke="rgba(255, 255, 255, 0.45)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
+
+          {/* Rosy Gradient Cheek */}
+          <Circle cx="70" cy="38" r="5.5" fill="url(#fryBlushGrad)" />
+
+          {/* Micro Bubbles floating from snout */}
+          <Circle cx="82" cy="28" r="1.4" fill="#FFFFFF" opacity="0.6" />
+          <Circle cx="85" cy="22" r="1" fill="#FFFFFF" opacity="0.45" />
         </G>
       </Svg>
 
-      {/* Pectoral Fin */}
+      {/* Pectoral Fin Layer with Reanimated Anchor */}
       <Animated.View
         style={[
           styles.partContainer,
           finAnimStyle,
-          { left: "54%", top: "45%", width: "16%", height: "20%" },
+          { left: "52%", top: "42%", width: "18%", height: "22%" },
         ]}
       >
-        <Svg width="100%" height="100%" viewBox="0 0 20 20">
+        <Svg width="100%" height="100%" viewBox="0 0 22 22">
           <Path
-            d="M 3 3 Q 16 8 14 18 Q 4 15 3 3 Z"
-            fill={theme.finGradientEnd}
-            opacity="0.85"
+            d="M 3 3 Q 18 6 16 18 Q 6 16 3 3 Z"
+            fill="url(#fryFinGrad)"
           />
+          <Path d="M 4 4 Q 12 10 12 16" stroke="rgba(255, 255, 255, 0.55)" strokeWidth="0.9" fill="none" />
+          <Path d="M 7 4 Q 14 8 15 13" stroke="rgba(255, 255, 255, 0.45)" strokeWidth="0.8" fill="none" />
         </Svg>
       </Animated.View>
 
-      {/* Big Kawaii Sparkly Eye */}
+      {/* Big Kawaii Gemstone Eye */}
       <Animated.View
         style={[
           styles.partContainer,
           eyeAnimStyle,
-          { left: "64%", top: "25%", width: "20%", height: "25%" },
+          { left: "64%", top: "24%", width: "21%", height: "26%" },
         ]}
       >
-        <Svg width="100%" height="100%" viewBox="0 0 20 20">
+        <Svg width="100%" height="100%" viewBox="0 0 22 22">
           {isHappy ? (
-            // Smiling Happy Arc Eye
             <Path
-              d="M 3 13 Q 10 3 17 13"
-              stroke="#1A2A3A"
+              d="M 3 14 Q 11 3 19 14"
+              stroke="#0F172A"
               strokeWidth="2.8"
               strokeLinecap="round"
               fill="none"
             />
           ) : isSleeping ? (
-            // Sleeping closed eye
             <Path
-              d="M 3 10 Q 10 16 17 10"
-              stroke="#1A2A3A"
+              d="M 3 11 Q 11 18 19 11"
+              stroke="#0F172A"
               strokeWidth="2.2"
               strokeLinecap="round"
               fill="none"
             />
           ) : (
-            // Normal Big Anime Eye
             <G>
-              <Circle cx="10" cy="10" r="7.5" fill="#1A2A3A" />
-              {/* Dual White Highlights */}
-              <Circle cx="7.5" cy="7.5" r="3" fill="#FFFFFF" />
-              <Circle cx="13" cy="12.5" r="1.5" fill="#FFFFFF" />
+              {/* Deep Pupil */}
+              <Circle cx="11" cy="11" r="8" fill="#0F172A" />
+              {/* Iris Amber/Aqua rim */}
+              <Circle cx="11" cy="11" r="7.2" stroke={theme.primaryLight} strokeWidth="1" fill="none" opacity="0.75" />
+              {/* Primary Gloss Highlight */}
+              <Circle cx="8" cy="8" r="3.4" fill="#FFFFFF" />
+              {/* Secondary Sparkle */}
+              <Circle cx="14" cy="14" r="1.5" fill="#FFFFFF" />
+              {/* Lower Iris Reflection Arc */}
+              <Path d="M 7 14 Q 11 17 15 14" stroke="rgba(255, 255, 255, 0.55)" strokeWidth="1.1" strokeLinecap="round" fill="none" />
             </G>
           )}
         </Svg>
       </Animated.View>
 
-      {/* Tiny Mouth */}
-      <View style={[styles.partContainer, { left: "80%", top: "44%", width: 8, height: 6 }]}>
-        <Svg width="8" height="6" viewBox="0 0 8 6">
-          <Path d="M 1 2 Q 5 5 7 2" stroke="#1A2A3A" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* Cute Smiling Mouth */}
+      <View style={[styles.partContainer, { left: "80%", top: "43%", width: 9, height: 7 }]}>
+        <Svg width="9" height="7" viewBox="0 0 9 7">
+          <Path d="M 1 2 Q 5 6 8 2" stroke="#0F172A" strokeWidth="1.8" fill="none" strokeLinecap="round" />
         </Svg>
       </View>
     </View>
