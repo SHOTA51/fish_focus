@@ -33,6 +33,7 @@ interface FocusState {
   pendingEvolution: EvolutionEvent | null;
 
   setUserId: (id: string | null) => Promise<void>;
+  resetFishState: () => void;
   setUser: (user: User) => void;
   setFish: (fish: Fish) => void;
   setFishStage: (stage: FishStage) => void;
@@ -66,6 +67,21 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       await AsyncStorage.removeItem('userId');
     }
     set({ userId: id });
+  },
+
+  // Reset fish state to fresh defaults (used on logout / account switch)
+  resetFishState: () => {
+    set({
+      user: null,
+      fish: {
+        name: 'น้องส้ม (Fishy)',
+        level: 1,
+        experience: 0,
+        stage: 'egg',
+        food: 5,
+      },
+      pendingEvolution: null,
+    });
   },
 
   setUser: (user) => set({ user }),
@@ -186,7 +202,9 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   loadUserProfile: async (id) => {
     try {
       const user = await api.getUserProfile(id);
-      const savedLocalFish = await AsyncStorage.getItem('local_fish_meta');
+      // Use per-user cache key so different accounts never share fish data
+      const cacheKey = id ? `local_fish_meta_${id}` : 'local_fish_meta';
+      const savedLocalFish = await AsyncStorage.getItem(cacheKey);
       let localMeta = savedLocalFish ? JSON.parse(savedLocalFish) : null;
 
       const serverFish = user.fish;
@@ -244,10 +262,12 @@ export const useFocusStore = create<FocusState>((set, get) => ({
 
   syncLocalFishState: async () => {
     try {
-      const fish = get().fish;
+      const { fish, userId } = get();
       if (fish) {
+        // Use per-user cache key so different accounts never share fish data
+        const cacheKey = userId ? `local_fish_meta_${userId}` : 'local_fish_meta';
         await AsyncStorage.setItem(
-          'local_fish_meta',
+          cacheKey,
           JSON.stringify({
             food: fish.food ?? 5,
             stage: fish.stage,

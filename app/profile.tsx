@@ -11,11 +11,18 @@ import {
 } from "./components/ui/DetailedAquaticAssets";
 
 export default function ProfileScreen() {
-  const { fish, user, setUserId } = useFocusStore();
+  const { fish, user, userId, setUserId, resetFishState } = useFocusStore();
 
   const handleLogout = async () => {
+    // Clear per-user fish cache before resetting userId
+    if (userId) {
+      await AsyncStorage.removeItem(`local_fish_meta_${userId}`);
+    }
+    // Also clear legacy key (from old versions without per-user cache)
+    await AsyncStorage.removeItem('local_fish_meta');
     await AsyncStorage.multiRemove(["userId", "token"]);
-    setUserId(null);
+    resetFishState();
+    await setUserId(null);
     router.replace("/login");
   };
 
