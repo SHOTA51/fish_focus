@@ -7,9 +7,12 @@ import {
   Alert,
   SafeAreaView,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   ActivityIndicator,
   StyleSheet,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { router } from "expo-router";
 import { isAxiosError } from "axios";
@@ -66,19 +69,19 @@ export default function LoginScreen() {
   }));
 
   const handleLogin = async () => {
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail || !password) {
-      Alert.alert("กรอกข้อมูลไม่ครบ", "กรุณากรอกทั้งอีเมลและรหัสผ่าน");
+    const trimmedIdentifier = email.trim();
+    if (!trimmedIdentifier || !password) {
+      Alert.alert("กรอกข้อมูลไม่ครบ", "กรุณากรอกอีเมลหรือชื่อผู้ใช้ และรหัสผ่าน");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await api.login(trimmedEmail, password);
+      const response = await api.login(trimmedIdentifier, password);
       const { userId, user } = response;
 
       setUser(user);
-      if (user.fish) {
+      if (user?.fish) {
         setFish(user.fish);
       }
       await setUserId(userId);
@@ -100,17 +103,20 @@ export default function LoginScreen() {
           } else if (typeof data === "string" && data.length > 0) {
             errorMessage = data;
           } else if (status === 401 || status === 400) {
-            errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง (Invalid credentials)";
+            errorMessage = "อีเมล/ชื่อผู้ใช้ หรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
           } else if (status >= 500) {
             errorMessage = `เซิร์ฟเวอร์ขัดข้อง (Status code: ${status})`;
           } else {
             errorMessage = `เกิดข้อผิดพลาด (Status code: ${status})`;
           }
+        } else if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
+          errorMessage =
+            "เซิร์ฟเวอร์กำลังตื่นจากการหลับ (Render Cold Start) กรุณารอสักครู่แล้วกดเข้าสู่ระบบใหม่อีกครั้ง 🌊";
         } else if (e.request) {
           const networkDetail = e.message ? ` (${e.message})` : "";
           errorMessage =
             `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้${networkDetail}\n\n` +
-            `กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ URL เซิร์ฟเวอร์:\n${API_CONFIG.BASE_URL}`;
+            `กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตบนมือถือ\n(เซิร์ฟเวอร์: ${API_CONFIG.BASE_URL})`;
         } else {
           errorMessage = e.message || "เกิดข้อผิดพลาดในการส่งคำขอไปยังเซิร์ฟเวอร์";
         }
@@ -118,7 +124,7 @@ export default function LoginScreen() {
         errorMessage = e.message;
       }
 
-      Alert.alert("เข้าสู่ระบบไม่สำเร็จ (Login Failed)", errorMessage);
+      Alert.alert("เข้าสู่ระบบไม่สำเร็จ", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -127,10 +133,14 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.container}
       >
-        <View style={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Decorative Floating Fish Hero */}
           <View style={styles.heroSection}>
             <Animated.View style={[styles.haloBubble, bubbleAnimatedStyle]} />
@@ -145,16 +155,15 @@ export default function LoginScreen() {
 
           {/* Form Card */}
           <View style={styles.card}>
-            {/* Email Field */}
+            {/* Email or Username Field */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>EMAIL ADDRESS</Text>
+              <Text style={styles.fieldLabel}>EMAIL OR USERNAME (อีเมล หรือ ชื่อผู้ใช้)</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="name@example.com"
+                placeholder="email@example.com หรือ ชื่อผู้ใช้"
                 placeholderTextColor="#94A3B8"
                 value={email}
                 onChangeText={setEmail}
-                keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!isLoading}
@@ -217,7 +226,7 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -231,11 +240,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
   heroSection: {
     alignItems: "center",

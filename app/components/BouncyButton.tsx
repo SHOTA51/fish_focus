@@ -15,8 +15,6 @@ interface BouncyButtonProps {
   accessibilityLabel?: string;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export const BouncyButton: React.FC<BouncyButtonProps> = ({
   onPress,
   disabled = false,
@@ -27,11 +25,9 @@ export const BouncyButton: React.FC<BouncyButtonProps> = ({
 }) => {
   const scale = useSharedValue(1);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const handlePressIn = () => {
     if (!disabled) {
@@ -46,15 +42,17 @@ export const BouncyButton: React.FC<BouncyButtonProps> = ({
   };
 
   return (
-    <AnimatedPressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      accessibilityLabel={accessibilityLabel}
-      style={[style, animatedStyle]}
-    >
-      {children}
-    </AnimatedPressable>
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        accessibilityLabel={accessibilityLabel}
+        style={style}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
   );
 };

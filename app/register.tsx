@@ -23,6 +23,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { api } from "./services/api";
+import { useFocusStore } from "./store/useFocusStore";
 import { API_CONFIG } from "./constants/config";
 import { Fish } from "./components/Fish";
 import { BouncyButton } from "./components/BouncyButton";
@@ -33,6 +34,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { setUserId, setUser, setFish } = useFocusStore();
 
   // Floating gentle bobbing animation
   const fishY = useSharedValue(0);
@@ -66,7 +68,7 @@ export default function RegisterScreen() {
   }));
 
   const handleRegister = async () => {
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     const trimmedUsername = username.trim();
 
     if (!trimmedEmail || !trimmedUsername || !password) {
@@ -74,13 +76,26 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (password.length < 6) {
+      Alert.alert("รหัสผ่านสั้นเกินไป", "กรุณาตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await api.register(trimmedUsername, trimmedEmail, password);
+      const response = await api.register(trimmedUsername, trimmedEmail, password);
+      const { userId, user } = response;
+
+      setUser(user);
+      if (user?.fish) {
+        setFish(user.fish);
+      }
+      await setUserId(userId);
+
       Alert.alert(
-        "สร้างบัญชีสำเร็จ!",
-        "ยินดีต้อนรับเพื่อนใหม่! เข้าสู่ระบบเพื่อเริ่มเลี้ยงน้องปลากันเลย 🐠",
-        [{ text: "เข้าสู่ระบบ", onPress: () => router.replace("/login") }]
+        "สร้างบัญชีสำเร็จ! 🎉",
+        `ยินดีต้อนรับคุณ ${trimmedUsername}! น้องปลา Bob รอดำดิ่งไปกับคุณแล้ว 🐠`,
+        [{ text: "เริ่มใช้งานทันที", onPress: () => router.replace("/") }]
       );
     } catch (e) {
       let errorMessage = "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง";
@@ -98,16 +113,19 @@ export default function RegisterScreen() {
             }
           } else if (typeof data === "string" && data.length > 0) {
             errorMessage = data;
-          } else if (status === 409) {
-            errorMessage = "อีเมลหรือชื่อผู้ใช้นี้ถูกใช้งานแล้ว";
+          } else if (status === 409 || status === 400) {
+            errorMessage = "อีเมลหรือชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาลองใช้อีเมลหรือชื่ออื่น";
           } else if (status >= 500) {
             errorMessage = `เซิร์ฟเวอร์ขัดข้อง (Status code: ${status})`;
           }
+        } else if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
+          errorMessage =
+            "เซิร์ฟเวอร์กำลังตื่นจากการหลับ (Render Cold Start) กรุณารอสักครู่แล้วกดสร้างบัญชีใหม่อีกครั้ง 🌊";
         } else if (e.request) {
           const networkDetail = e.message ? ` (${e.message})` : "";
           errorMessage =
             `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้${networkDetail}\n\n` +
-            `กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ URL เซิร์ฟเวอร์:\n${API_CONFIG.BASE_URL}`;
+            `กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตบนมือถือ\n(เซิร์ฟเวอร์: ${API_CONFIG.BASE_URL})`;
         } else {
           errorMessage = e.message || "เกิดข้อผิดพลาดในการส่งคำขอ";
         }
@@ -115,7 +133,7 @@ export default function RegisterScreen() {
         errorMessage = e.message;
       }
 
-      Alert.alert("ลงทะเบียนไม่สำเร็จ (Registration Failed)", errorMessage);
+      Alert.alert("ลงทะเบียนไม่สำเร็จ", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -124,11 +142,12 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.container}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Decorative Floating Fish Hero */}

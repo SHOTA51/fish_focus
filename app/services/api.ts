@@ -6,6 +6,7 @@ import { User, Quest, Statistics } from '../types';
 // Create an axios instance to handle JWT tokens automatically
 const client = axios.create({
   baseURL: API_CONFIG.BASE_URL,
+  timeout: 30000, // 30s timeout to gracefully accommodate Render cold-starts
 });
 
 // Interceptor to attach JWT token to every request
@@ -29,16 +30,38 @@ client.interceptors.response.use(
 );
 
 export const api = {
-  async login(email: string, password: string) {
-    const { data } = await client.post('/auth/login', { email, password });
-    // Save token for future requests
-    await AsyncStorage.setItem('token', data.token);
+  async login(identifier: string, password: string) {
+    const cleanId = identifier.trim();
+    const { data } = await client.post('/auth/login', {
+      email: cleanId,
+      username: cleanId,
+      identifier: cleanId,
+      password,
+    });
+    // Save token and userId for future requests
+    if (data.token) {
+      await AsyncStorage.setItem('token', data.token);
+    }
+    if (data.userId) {
+      await AsyncStorage.setItem('userId', data.userId);
+    }
     return data; 
   },
 
   async register(username: string, email: string, password: string) {
-    const { data } = await client.post('/auth/register', { username, email, password });
-    await AsyncStorage.setItem('token', data.token);
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const { data } = await client.post('/auth/register', {
+      username: cleanUsername,
+      email: cleanEmail,
+      password,
+    });
+    if (data.token) {
+      await AsyncStorage.setItem('token', data.token);
+    }
+    if (data.userId) {
+      await AsyncStorage.setItem('userId', data.userId);
+    }
     return data;
   },
 
